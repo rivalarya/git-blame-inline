@@ -3,6 +3,7 @@
   "displayName": "Git Blame Inline",
   "description": "Show git blame per line",
   "version": "0.0.1",
+  "publisher" : "rivalarya",
   "engines": {
     "vscode": "^1.98.0"
   },
@@ -13,9 +14,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:git-blame-inline.showBlame"
-  ],
+  "activationEvents": [],
   "contributes": {
     "commands": [
       {
