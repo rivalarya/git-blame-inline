@@ -60,7 +60,7 @@ You can modify these settings in your VS Code settings.json file:
 
 ## Release Notes
 
-### 1.0.0
+### 0.0.1
 
 - Initial release of Git Blame Inline
 - Basic functionality with automatic and manual modes
