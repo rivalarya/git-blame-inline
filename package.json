@@ -1,0 +1,68 @@
+{
+  "name": "git-blame-inline",
+  "displayName": "Git Blame Inline",
+  "description": "Show git blame per line",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:git-blame-inline.showBlame"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "git-blame-inline.showBlame",
+        "title": "Show Git Blame Inline"
+      }
+    ],
+    "configuration": {
+      "title": "Git Blame Inline",
+      "properties": {
+        "gitBlameInline.displayDuration": {
+          "type": "number",
+          "default": 5000,
+          "description": "Duration in milliseconds to display blame information. Set to 0 for permanent display."
+        },
+        "gitBlameInline.autoShowOnSelect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show blame info when selecting a line"
+        }
+      }
+    }
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/proxyquire": "^1.3.31",
+    "@types/sinon": "^17.0.3",
+    "@types/vscode": "^1.98.0",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.21.0",
+    "proxyquire": "^2.1.3",
+    "sinon": "^17.0.1",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  }
+}
