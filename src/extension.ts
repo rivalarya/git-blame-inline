@@ -35,14 +35,41 @@ export function activate(context: vscode.ExtensionContext) {
 
             const editor = event.textEditor;
             if (editor && event.selections.length > 0) {
-                // Clear previous decorations
-                clearDecorations();
-                
-                // Show blame for the current line
-                showBlameForLine(editor, event.selections[0].active.line);
+                const currentSelection = event.selections[0];
+
+                // Check if the movement is vertical (up/down)
+                if (isVerticalMovement(event)) {
+                    // Clear previous decorations
+                    clearDecorations();
+
+                    // Show blame for the current line
+                    showBlameForLine(editor, currentSelection.active.line);
+                }
             }
         })
     );
+
+    // Helper function to detect vertical cursor movement
+    let previousLine: number | undefined;
+    function isVerticalMovement(event: vscode.TextEditorSelectionChangeEvent): boolean {
+        const currentLine = event.selections[0].active.line;
+    
+        if (previousLine === undefined) {
+            previousLine = currentLine;
+            return false;
+        }
+    
+        const moved = currentLine !== previousLine;
+        if (moved) {
+            console.log(`Cursor moved ${currentLine > previousLine ? 'down' : 'up'}`);
+            previousLine = currentLine;
+            return true;
+        }
+    
+        console.log('Cursor moved horizontally');
+        previousLine = currentLine;
+        return false;
+    }
 
     // Register configuration change listener
     context.subscriptions.push(
@@ -66,6 +93,8 @@ function getConfig(): GitBlameInlineConfig {
 }
 
 async function showBlameForLine(editor: vscode.TextEditor, line: number) {
+    console.log('invoked');
+
     const filePath = editor.document.fileName;
     const lineNumber = line + 1; // git blame uses 1-based index
 
@@ -77,6 +106,7 @@ async function showBlameForLine(editor: vscode.TextEditor, line: number) {
     } catch (error) {
         // Silent fail for automatic triggers
         console.error(`Error running git blame: ${error}`);
+        displayBlame(editor, line, 'No commit found');
     }
 }
 
@@ -86,7 +116,7 @@ function clearDecorations() {
         decoration.dispose();
     });
     activeDecorations = [];
-    
+
     // Clear all active timeouts
     activeTimeouts.forEach(timeout => {
         clearTimeout(timeout);
@@ -111,12 +141,12 @@ async function getGitBlame(filePath: string, lineNumber: number): Promise<string
 
             // Match the git blame output
             const match = stdout.match(/\^([a-f0-9]+) \(([^)]+) (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{4})/);
-            
+
             if (match) {
                 const commitHash = match[1]; // Hash commit
                 const author = match[2]; // Author name
                 const dateStr = match[3]; // Date string
-                
+
                 // Convert to time ago format
                 const timeAgo = formatTimeAgo(new Date(dateStr));
                 const formatted = `${author}, ${timeAgo} - ${commitHash}`;
@@ -190,7 +220,7 @@ function displayBlame(editor: vscode.TextEditor, line: number, blame: string) {
             if (index > -1) {
                 decorationType.dispose();
                 activeDecorations.splice(index, 1);
-                
+
                 // Also remove from active timeouts
                 const timeoutIndex = activeTimeouts.indexOf(timeout);
                 if (timeoutIndex > -1) {
@@ -198,7 +228,7 @@ function displayBlame(editor: vscode.TextEditor, line: number, blame: string) {
                 }
             }
         }, config.displayDuration);
-        
+
         // Store the timeout ID for cleanup
         activeTimeouts.push(timeout);
     }

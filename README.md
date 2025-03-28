@@ -55,10 +55,13 @@ You can modify these settings in your VS Code settings.json file:
 
 ## Known Issues
 
-- May not work correctly with uncommitted changes
-- Performance may be affected in large repositories with complex history
 
 ## Release Notes
+
+### 0.0.2
+
+- Fix the issue where the extension does not run after installation
+- Only show git blame when the user moves the cursor up or down, making it more lightweight
 
 ### 0.0.1
 
