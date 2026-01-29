@@ -58,6 +58,13 @@ You can modify these settings in your VS Code settings.json file:
 
 ## Release Notes
 
+### 0.0.3
+
+- Enhanced security by replacing shell execution with `execFile` to prevent command injection
+- Standardized output parsing using the `--line-porcelain` flag
+- Added logo
+- Improved observability by adding `[Git Blame Inline]` prefixed logs for debugging
+
 ### 0.0.2
 
 - Fix the issue where the extension does not run after installation

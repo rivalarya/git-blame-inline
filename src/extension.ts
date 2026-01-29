@@ -12,7 +12,7 @@ interface GitBlameInlineConfig {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "git-blame-inline" is now active!');
+    console.log('[Git Blame Inline] Congratulations, your extension "git-blame-inline" is now active!');
 
     // Register the manual command
     let disposable = vscode.commands.registerCommand('git-blame-inline.showBlame', async () => {
@@ -53,20 +53,20 @@ export function activate(context: vscode.ExtensionContext) {
     let previousLine: number | undefined;
     function isVerticalMovement(event: vscode.TextEditorSelectionChangeEvent): boolean {
         const currentLine = event.selections[0].active.line;
-    
+
         if (previousLine === undefined) {
             previousLine = currentLine;
             return false;
         }
-    
+
         const moved = currentLine !== previousLine;
         if (moved) {
-            console.log(`Cursor moved ${currentLine > previousLine ? 'down' : 'up'}`);
+            console.log(`[Git Blame Inline] Cursor moved ${currentLine > previousLine ? 'down' : 'up'}`);
             previousLine = currentLine;
             return true;
         }
-    
-        console.log('Cursor moved horizontally');
+
+        console.log('[Git Blame Inline] Cursor moved horizontally');
         previousLine = currentLine;
         return false;
     }
@@ -93,8 +93,6 @@ function getConfig(): GitBlameInlineConfig {
 }
 
 async function showBlameForLine(editor: vscode.TextEditor, line: number) {
-    console.log('invoked');
-
     const filePath = editor.document.fileName;
     const lineNumber = line + 1; // git blame uses 1-based index
 
@@ -104,8 +102,7 @@ async function showBlameForLine(editor: vscode.TextEditor, line: number) {
             displayBlame(editor, line, blame);
         }
     } catch (error) {
-        // Silent fail for automatic triggers
-        console.error(`Error running git blame: ${error}`);
+        console.error('[Git Blame Inline] Error running git blame:', JSON.stringify(error));
         displayBlame(editor, line, 'No commit found');
     }
 }
@@ -133,30 +130,54 @@ async function getGitBlame(filePath: string, lineNumber: number): Promise<string
             return;
         }
 
-        child_process.exec(`git blame -L ${lineNumber},${lineNumber} "${filePath}"`, { cwd }, (error, stdout, stderr) => {
-            if (error) {
-                reject(stderr || error.message);
-                return;
+        console.log(
+            `[Git Blame Inline] Running git blame --line-porcelain -L ${lineNumber},${lineNumber} "${filePath}"`
+        );
+
+        child_process.execFile(
+            'git',
+            ['blame', '--line-porcelain', '-L', `${lineNumber},${lineNumber}`, filePath],
+            { cwd },
+            (error, stdout, stderr) => {
+                if (error) {
+                    reject(stderr || error.message);
+                    return;
+                }
+
+                console.log('[Git Blame Inline] STDOUT:', JSON.stringify(stdout));
+                console.log('[Git Blame Inline] STDERR:', JSON.stringify(stderr));
+
+                /*
+                  Example --line-porcelain output:
+                  <commit-hash>
+                  author Rival Arya
+                  author-time 1769649906
+                  author-tz +0700
+                */
+
+                const commitMatch = stdout.match(/^([a-f0-9]{7,40})/m);
+                const authorMatch = stdout.match(/^author (.+)$/m);
+                const timeMatch = stdout.match(/^author-time (\d+)$/m);
+
+                const commitHash = commitMatch?.[1].slice(0, 8);
+                const author = authorMatch?.[1];
+                const authorTime = timeMatch ? Number(timeMatch[1]) * 1000 : null;
+
+                const isUncommitted =
+                    !commitHash ||
+                    commitHash.startsWith('00000000') ||
+                    !authorTime ||
+                    authorTime === 0;
+
+                if (isUncommitted) {
+                    resolve('Not Committed Yet');
+                    return;
+                }
+
+                const timeAgo = formatTimeAgo(new Date(authorTime));
+                resolve(`${author}, ${timeAgo} - ${commitHash}`);
             }
-
-            // Match the git blame output
-            const match = stdout.match(/\^([a-f0-9]+) \(([^)]+) (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{4})/);
-
-            if (match) {
-                const commitHash = match[1]; // Hash commit
-                const author = match[2]; // Author name
-                const dateStr = match[3]; // Date string
-
-                // Convert to time ago format
-                const timeAgo = formatTimeAgo(new Date(dateStr));
-                const formatted = `${author}, ${timeAgo} - ${commitHash}`;
-
-                resolve(formatted);
-            } else {
-                resolve('Not Commited Yet');
-                // resolve(stdout.trim());
-            }
-        });
+        );
     });
 }
 
