@@ -1,6 +1,6 @@
-![Version](https://img.shields.io/visual-studio-marketplace/v/rivalarya.git-blame-inline)
-![Downloads](https://img.shields.io/visual-studio-marketplace/d/rivalarya.git-blame-inline)
-![Rating](https://img.shields.io/visual-studio-marketplace/r/rivalarya.git-blame-inline)
+![Version](https://vsmarketplacebadges.dev/version-short/rivalarya.git-blame-inline.svg)
+![Installs](https://vsmarketplacebadges.dev/installs-short/rivalarya.git-blame-inline.svg)
+![Rating](https://vsmarketplacebadges.dev/rating-short/rivalarya.git-blame-inline.svg)
 
 # Git Blame Inline
 
